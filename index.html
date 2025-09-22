@@ -1,0 +1,247 @@
+<!-- ORAIT-PROJECT-UPDATE-PORTAL.html with FormSubmit integration -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ORAIT-PROJECT-UPDATE-PORTAL</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#0ea5a3;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#071233 0%,#071233 40%,#021024 100%);color:#e6eef6;padding:20px}
+    .wrap{max-width:1100px;margin:12px auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    h1{font-size:20px;margin:6px 0}
+    .sub{color:var(--muted);font-size:13px}
+    .card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(2,6,23,0.6);margin-top:16px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+    input[type=text],input[type=number],select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    .row{display:flex;gap:12px}
+    .col{flex:1}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:#052322;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .right{display:flex;align-items:center;gap:8px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px 10px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:left;font-size:13px}
+    th{color:var(--muted);font-weight:600}
+    .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    footer{color:var(--muted);font-size:12px;margin-top:16px;text-align:center}
+    @media(max-width:800px){.row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>ORAIT - PROJECT UPDATE PORTAL</h1>
+        <div class="sub">Login with employee number. Admins have full access.</div>
+      </div>
+      <div class="right">
+        <div id="loggedInfo" class="sub"></div>
+        <button id="btnLogout" class="btn ghost" style="display:none">Logout</button>
+      </div>
+    </header>
+
+    <!-- Login -->
+    <div id="loginCard" class="card">
+      <h3>Employee Login</h3>
+      <div style="max-width:420px;margin-top:10px">
+        <label>Employee Number</label>
+        <input id="empNumber" type="number" placeholder="e.g. 1092" />
+        <label style="margin-top:8px">Display name (optional)</label>
+        <input id="empName" type="text" placeholder="Your name or leave blank" />
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button id="btnLogin" class="btn">Login</button>
+          <button id="btnQuick" class="btn ghost">Quick demo login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Area -->
+    <div id="mainArea" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <h3>Submit Update</h3>
+            <div style="margin-top:8px">
+              <label>Category</label>
+              <select id="category">
+                <option>Material Status</option>
+                <option>Issue</option>
+                <option>Progress</option>
+                <option>Changes</option>
+                <option>Others</option>
+              </select>
+              <div class="row" style="margin-top:8px">
+                <div class="col">
+                  <label>Project / Location</label>
+                  <input id="project" type="text" placeholder="e.g. Qassim - Admin Building" />
+                </div>
+                <div class="col">
+                  <label>Quantity / Reference</label>
+                  <input id="quantity" type="text" placeholder="e.g. 2 rolls / POE switch" />
+                </div>
+              </div>
+              <label style="margin-top:8px">Short description / remarks</label>
+              <textarea id="remarks" rows="3" placeholder="Explain the update..."></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button id="btnSubmit" class="btn">Submit Update</button>
+                <button id="btnClearForm" class="btn ghost">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="width:360px;min-width:260px">
+            <h3>Controls</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="btnExport" class="btn ghost">Export all to CSV</button>
+              <button id="btnAdminClear" class="btn ghost" title="Admin only">Clear all data (admin)</button>
+              <div style="margin-top:8px">
+                <label>Search / Filter</label>
+                <input id="search" type="text" placeholder="search project, remarks, employee" />
+                <div class="filters" style="margin-top:6px">
+                  <select id="filterCategory"><option value="">All categories</option><option>Material Status</option><option>Issue</option><option>Progress</option><option>Changes</option><option>Others</option></select>
+                  <select id="filterView"><option value="mine">My entries</option><option value="all">All entries (admin)</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Updates</h3>
+        <div id="entriesWrap"></div>
+      </div>
+    </div>
+
+    <!-- Hidden Form for FormSubmit -->
+    <form id="emailForm" action="https://formsubmit.co/mustanser@orait.com.sa" method="POST" style="display:none;">
+      <input type="hidden" name="Employee" id="fEmployee">
+      <input type="hidden" name="Category" id="fCategory">
+      <input type="hidden" name="Project" id="fProject">
+      <input type="hidden" name="Quantity" id="fQuantity">
+      <input type="hidden" name="Remarks" id="fRemarks">
+    </form>
+
+    <footer>Built for ORAIT — Hosted on GitHub Pages.</footer>
+  </div>
+
+  <script>
+    // ===== CONFIG =====
+    const INITIAL_USERS = [
+      { id: '1092', name: 'Naeem' },
+      { id: '6568', name: 'Mirza' },
+      { id: '4545', name: 'Ayub' }
+    ];
+    const ADMIN_IDS = ['6568'];
+
+    const KEY_ENTRIES = 'orait_updates_v1';
+    const KEY_USERS = 'orait_users_v1';
+
+    function $(id){return document.getElementById(id)}
+    function nowISO(){return new Date().toISOString()}
+
+    function loadUsers(){const raw=localStorage.getItem(KEY_USERS);if(raw) return JSON.parse(raw);localStorage.setItem(KEY_USERS, JSON.stringify(INITIAL_USERS));return INITIAL_USERS.slice()}
+    function saveUsers(list){localStorage.setItem(KEY_USERS, JSON.stringify(list))}
+    function loadEntries(){const raw=localStorage.getItem(KEY_ENTRIES);return raw?JSON.parse(raw):[]}
+    function saveEntries(arr){localStorage.setItem(KEY_ENTRIES, JSON.stringify(arr))}
+    function uid(){return 'U'+Math.floor(Math.random()*900000+100000)}
+
+    let currentUser=null;
+
+    const loginCard=$('loginCard');const mainArea=$('mainArea');const loggedInfo=$('loggedInfo');const btnLogout=$('btnLogout');
+
+    $('btnLogin').addEventListener('click',()=>{
+      const id=String($('empNumber').value||'').trim();
+      let name=String($('empName').value||'').trim();
+      if(!id){alert('Enter employee number');return}
+      const users=loadUsers();
+      let u=users.find(x=>x.id===id);
+      if(!u){if(!name) name='User-'+id;u={id,name};users.push(u);saveUsers(users)}
+      if(!name) name=u.name;
+      const isAdmin=ADMIN_IDS.includes(id);
+      currentUser={id,name,isAdmin};
+      postLogin();
+    });
+
+    $('btnQuick').addEventListener('click',()=>{
+      const demo=INITIAL_USERS[0];
+      $('empNumber').value=demo.id;
+      $('empName').value=demo.name;
+      $('btnLogin').click();
+    });
+
+    function postLogin(){
+      loginCard.style.display='none';mainArea.style.display='block';
+      loggedInfo.textContent=currentUser.name+' ('+currentUser.id+(currentUser.isAdmin?') - Admin':' )');
+      btnLogout.style.display='inline-block';
+      if(!currentUser.isAdmin) $('filterView').value='mine';
+      renderEntries();
+    }
+
+    btnLogout.addEventListener('click',()=>{currentUser=null;loginCard.style.display='block';mainArea.style.display='none';btnLogout.style.display='none';loggedInfo.textContent=''});
+
+    $('btnSubmit').addEventListener('click',()=>{
+      if(!currentUser){alert('Please login first');return}
+      const category=$('category').value;
+      const project=$('project').value.trim();
+      const qty=$('quantity').value.trim();
+      const remarks=$('remarks').value.trim();
+      if(!project && !remarks){alert('Add project or remarks');return}
+      const entries=loadEntries();
+      const entry={id:uid(),ts:nowISO(),authorId:currentUser.id,authorName:currentUser.name,category,project,qty,remarks};
+      entries.unshift(entry);saveEntries(entries);renderEntries();
+
+      // Send email via FormSubmit
+      $('fEmployee').value=currentUser.name+" ("+currentUser.id+")";
+      $('fCategory').value=category;
+      $('fProject').value=project;
+      $('fQuantity').value=qty;
+      $('fRemarks').value=remarks;
+      document.getElementById('emailForm').submit();
+
+      $('remarks').value='';$('project').value='';$('quantity').value='';
+      alert('Update saved and email sent.');
+    });
+
+    $('btnClearForm').addEventListener('click',()=>{$('remarks').value='';$('project').value='';$('quantity').value=''});
+
+    function renderEntries(){
+      const wrap=$('entriesWrap');const all=loadEntries();
+      const search=$('search').value.toLowerCase();const catFilter=$('filterCategory').value;const view=$('filterView').value;
+      let entries=all.filter(e=>{
+        if(view==='mine' && (!currentUser||(!currentUser.isAdmin&&e.authorId!==currentUser.id))) return false;
+        if(catFilter&&e.category!==catFilter) return false;
+        if(search){return(e.project||'').toLowerCase().includes(search)||(e.remarks||'').toLowerCase().includes(search)||(e.authorName||'').toLowerCase().includes(search)||(e.authorId||'').toLowerCase().includes(search)}
+        return true;
+      });
+      if(entries.length===0){wrap.innerHTML='<div class="sub">No updates yet.</div>';return}
+      let html='<table><thead><tr><th>ID</th><th>Time</th><th>Category</th><th>Project</th><th>Qty</th><th>Remarks</th><th>By</th><th>Action</th></tr></thead><tbody>';
+      for(const e of entries){
+        html+=`<tr data-id="${e.id}"><td>${e.id}</td><td>${new Date(e.ts).toLocaleString()}</td><td>${e.category}</td><td>${escapeHtml(e.project)}</td><td>${escapeHtml(e.qty)}</td><td>${shorten(e.remarks,60)}</td><td>${escapeHtml(e.authorName)} (${e.authorId})</td><td>`;
+        if(currentUser&&(currentUser.isAdmin||e.authorId===currentUser.id)){
+          html+=`<button class="btn ghost" data-action="delete">Delete</button>`;
+        }else{html+='<span class="pill">View</span>'}
+        html+='</td></tr>';
+      }
+      html+='</tbody></table>';
+      wrap.innerHTML=html;
+      wrap.querySelectorAll('button[data-action=delete]').forEach(b=>{b.addEventListener('click',(ev)=>{const tr=ev.target.closest('tr');doDelete(tr.getAttribute('data-id'))})});
+      $('btnAdminClear').style.display=(currentUser&&currentUser.isAdmin)?'inline-block':'none';
+    }
+
+    function doDelete(id){if(!confirm('Delete this entry?'))return;const arr=loadEntries().filter(x=>x.id!==id);saveEntries(arr);renderEntries()}
+    $('btnExport').addEventListener('click',()=>{const arr=loadEntries();if(arr.length===0){alert('No entries');return}const csv=toCSV(arr);downloadFile('orait_updates.csv',csv,'text/csv')});
+
+    function toCSV(arr){const cols=['id','ts','authorId','authorName','category','project','qty','remarks'];const lines=[cols.join(',')];for(const r of arr){const row=cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(',');lines.push(row)}return lines.join('\n')}
+    function downloadFile(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+
+    function escapeHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+    function shorten(s,n){if(!s)return'';return s.length>n?s.slice(0,n-1)+'…':s}
+
+    loadUsers();
+  </script>
+</body>
+</html>
